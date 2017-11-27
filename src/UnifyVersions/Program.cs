@@ -46,6 +46,11 @@ namespace UnifyVersions
                         continue;
                     }
 
+                    if (StringComparer.OrdinalIgnoreCase.Equals(version, GetReferencedPackageVersionProperty(include)))
+                    {
+                        continue;
+                    }
+
                     packages.Add(new Package() { Id = include, Version = version });
                 }
             }
@@ -77,7 +82,7 @@ namespace UnifyVersions
                         continue;
                     }
 
-                    attribute.Value = $"$({ConvertPackageId(include)})";
+                    attribute.Value = GetReferencedPackageVersionProperty(include);
                 }
 
                 document.Save(file);
@@ -86,17 +91,21 @@ namespace UnifyVersions
             Console.WriteLine("Copy the following to PackageVersions.props:");
             Console.WriteLine();
 
-            foreach (string packageVersionProperty in uniquePackages.Select(p => $"<{ConvertPackageId(p)}>{p.Version}</{ConvertPackageId(p)}>"))
+            var packageVersionProperties = uniquePackages.Select(p => $"<{GetPackageVersionProperty(p.Id)}>{p.Version}</{GetPackageVersionProperty(p.Id)}>").ToList();
+
+            foreach (string packageVersionProperty in packageVersionProperties)
             {
                 Console.WriteLine(packageVersionProperty);
             }
 
+            Console.WriteLine("Completed.");
+
             Console.Read();
         }
 
-        private static string ConvertPackageId(Package package) => ConvertPackageId(package.Id);
+        private static string GetPackageVersionProperty(string packageId) => "PackageVersion_" + packageId.Replace(".", "_");
 
-        private static string ConvertPackageId(string packageId) => "PackageVersion_" + packageId.Replace(".", "_");
+        private static string GetReferencedPackageVersionProperty(string packageId) => $"$({GetPackageVersionProperty(packageId)})";
 
         private class Package
         {
