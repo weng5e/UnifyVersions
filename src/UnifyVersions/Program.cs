@@ -10,7 +10,12 @@ namespace UnifyVersions
     {
         public static void Main(string[] args)
         {
-            if (args == null || args.Length < 1 || !Directory.Exists(args[0]))
+            if (args == null || args.Length < 1)
+            {
+                args = new[] { @"C:\Repos\Metrics" };
+            }
+
+            if (!Directory.Exists(args[0]))
             {
                 Console.WriteLine("Root directory is expected.");
                 return;
@@ -20,13 +25,49 @@ namespace UnifyVersions
 
             string[] files = Directory.GetFiles(rootDirectory, "*.csproj", SearchOption.AllDirectories);
 
+            CheckCommonPropsAndCommonTargets(files);
+
+            GenereatePackageVersions(files);
+        }
+
+        private static void CheckCommonPropsAndCommonTargets(string[] projectFiles)
+        {
+            foreach (string file in projectFiles)
+            {
+                var document = XDocument.Parse(File.ReadAllText(file));
+
+                if (document.Root.Attribute("Sdk") == null)
+                {
+                    continue;
+                }
+
+                var firstElement = document.Root.Elements().First();
+
+                if (firstElement.Name != "Import" ||
+                    !firstElement.Attribute("Project").Value.EndsWith("Common.props"))
+                {
+                    Console.WriteLine($"No common.props is found in {file}");
+                }
+
+                var lastElement = document.Root.Elements().Last();
+
+                if (lastElement.Name != "Import" ||
+                    !lastElement.Attribute("Project").Value.EndsWith("Common.targets"))
+                {
+                    Console.WriteLine($"No common.targets is found in {file}");
+                }
+            }
+        }
+
+        private static void GenereatePackageVersions(string[] projectFiles)
+        {
             //
             // Collects package info.
             //
 
             List<Package> packages = new List<Package>();
 
-            foreach (string file in files)
+            foreach (string file in projectFiles)
             {
                 var document = XDocument.Parse(File.ReadAllText(file));
 
@@ -62,7 +103,7 @@ namespace UnifyVersions
             // Rewrites project files with version properties.
             //
 
-            foreach (string file in files)
+            foreach (string file in projectFiles)
             {
                 var document = XDocument.Parse(File.ReadAllText(file));
 
