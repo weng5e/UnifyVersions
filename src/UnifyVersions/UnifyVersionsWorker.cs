@@ -8,7 +8,7 @@ namespace UnifyVersions
 {
     public class UnifyVersionsWorker
     {
-        public static void UnifyVersion(string rootDirectory)
+        public static bool UnifyVersion(string rootDirectory, bool checkOnly)
         {
             string[] files = Directory.GetFiles(rootDirectory, "*.csproj", SearchOption.AllDirectories);
 
@@ -35,6 +35,10 @@ namespace UnifyVersions
                     if (string.IsNullOrEmpty(include) || string.IsNullOrEmpty(version))
                     {
                         Console.WriteLine($"Invalid package reference: {packageReference.ToString()}");
+                        if (checkOnly)
+                        {
+                            return false;
+                        }
                         continue;
                     }
 
@@ -43,8 +47,22 @@ namespace UnifyVersions
                         continue;
                     }
 
+                    if (checkOnly)
+                    {
+                        Console.Error.WriteLine($"Invalid version reference in file: {file}");
+                        Console.Error.WriteLine(packageReference.ToString());
+                    }
                     packages.Add(new Package() { Id = include, Version = version });
                 }
+            }
+
+            if(packages.Count==0)
+            {
+                return true;
+            }
+            if(checkOnly)
+            {
+                return false;
             }
 
             var uniquePackages = packages.Distinct(PackageComparer.Default).ToList();
@@ -92,7 +110,7 @@ namespace UnifyVersions
 
             Console.WriteLine("Completed.");
 
-            Console.Read();
+            return true;
         }
 
         private static string GetPackageVersionProperty(string packageId) => "PackageVersion_" + packageId.Replace(".", "_");
