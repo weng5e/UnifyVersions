@@ -54,7 +54,14 @@ namespace UnifyVersions
             }
             else
             {
-                Console.Read();
+                if (!checkResult)
+                {
+                    Console.Read();
+                }
+                else
+                {
+                    Console.WriteLine("Finished and all versions are unified.");
+                }
             }
 
             return 0;

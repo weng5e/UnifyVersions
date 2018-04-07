@@ -56,11 +56,11 @@ namespace UnifyVersions
                 }
             }
 
-            if(packages.Count==0)
+            if (packages.Count == 0)
             {
                 return true;
             }
-            if(checkOnly)
+            if (checkOnly)
             {
                 return false;
             }
@@ -110,7 +110,7 @@ namespace UnifyVersions
 
             Console.WriteLine("Completed.");
 
-            return true;
+            return false;
         }
 
         private static string GetPackageVersionProperty(string packageId) => "PackageVersion_" + packageId.Replace(".", "_");
