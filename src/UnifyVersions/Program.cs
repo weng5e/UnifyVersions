@@ -11,7 +11,7 @@ namespace UnifyVersions
     {
         public const string ApplicationName = "UnifyVersions";
 
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
             // UnifyVersions.exe -srcDir <srcDir> [-checkOnly]
 
@@ -30,15 +30,16 @@ namespace UnifyVersions
             if (!srcDirOption.HasValue())
             {
                 Console.Error.WriteLine("srcDir is blank.");
-                return;
+                return -1;
             }
 
             if (!Directory.Exists(srcDirOption.Value()))
             {
                 Console.Error.WriteLine($"The source dir doesn't exist: {srcDirOption.Value()}");
-                return;
+                return -1;
             }
 
+            Console.WriteLine($"Running 'UnifyVersions' tool on dir: {srcDirOption.Value()}");
             var checkResult = UnifyVersionsWorker.UnifyVersion(srcDirOption.Value(), checkOnlyOption.HasValue());
 
             if (checkOnlyOption.HasValue())
@@ -49,12 +50,14 @@ namespace UnifyVersions
                 {
                     Console.WriteLine("Please run 'UnifyVersions.exe' without '-checkOnly' to fix the issue.");
                 }
+                return checkResult ? 0 : -1;
             }
             else
             {
                 Console.Read();
             }
 
+            return 0;
         }
 
     }
